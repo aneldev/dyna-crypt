@@ -27,7 +27,9 @@ Returns `undefined` if the key is wrong.
 ### encryptEx(data: any, key: string, expireInMinutes?: number): string
 
 Encrypts something with expiration in `expireInMinutes`. 
-Technically the expired data can me decrypted but the bellow methods won't expose them. 
+Technically the expired data can me decrypted but the bellow methods won't expose them.
+
+`expireInMinutes` is optional, if not defined the data won't expire. 
 
 ### decryptEx(cipher: string, key: string): any
 

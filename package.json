@@ -1,6 +1,6 @@
 {
   "name": "dyna-crypt",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Encrypts and decrypts objects (or strings and numbers also) with AES with in very simple way.",
   "repository": {
     "type": "git",

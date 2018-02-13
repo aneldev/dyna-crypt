@@ -1,33 +1,31 @@
 ﻿// help: http://webpack.github.io/docs/configuration.html
-// help: http://webpack.github.io/docs/configuration.html
 // help: https://webpack.github.io/docs/webpack-dev-server.html#webpack-dev-server-cli
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 
-const package_ = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
 const loaders = require('./webpack.loaders');
 const plugins = require('./webpack.plugins');
 
 const config = {
-  target: 'node', // help: https://webpack.github.io/docs/configuration.html#target
+  target: 'web', // help: https://webpack.github.io/docs/configuration.html#target
   entry: [
-		// the entry application code
-		path.resolve(__dirname, 'src/index.ts')
-	],
-	output: {
-    path: path.resolve(__dirname, 'build'),
-		filename: 'index.js',
-    publicPath: '/dist/',
-    library: package_.name,
-    libraryTarget: 'umd',
-    umdNamedDefine: true
+    // inject some code in order to enable the auto refresh of the browse in case of a file's change
+	  'babel-polyfill',
+    'webpack-dev-server/client?http://localhost:8027',
+    // the entry application code
+    path.resolve(__dirname, 'dev/index.ts')
+  ],
+	externals: [],
+  output: {
+    path: path.resolve(__dirname, 'debug-ground/debug-dev-on-browser'),
+    filename: 'debug-dev-browser.js'
   },
-	resolve: {
-		alias: {},
+  resolve: {
+    alias: {},
     extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js", ".jsx"]
-	},
-	module: {
+  },
+  module: {
     loaders: loaders
   },
   node: {

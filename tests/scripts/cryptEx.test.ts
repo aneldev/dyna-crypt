@@ -1,5 +1,5 @@
 declare let describe: any, expect: any, it: any;
-import {encryptEx, decryptEx, decryptExInfo, IDecryptResult} from "./../src";
+import {encryptEx, decryptEx, decryptExInfo, IDecryptResult} from "./../../src";
 
 let objToEncrypt: any = {age: 32, name: 'Nancy'};
 

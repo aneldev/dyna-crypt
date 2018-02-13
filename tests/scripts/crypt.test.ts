@@ -1,5 +1,5 @@
 declare let describe: any, expect: any, it: any;
-import {encrypt, decrypt} from "./../src";
+import {encrypt, decrypt} from "./../../src";
 
 let textSample: string = 'something... strange... 把百度设为主页关于百度';
 let objectSample: any = {textSample, age: 32};

@@ -1,18 +1,20 @@
-import * as Crypto from "crypto-js"
+import * as Crypto from "crypto-js";
 
 interface ILockPacket {
-  d: any;
-  e: number;
+  data: any;
+  expiresAt: number;
 }
 
 export interface IDecryptResult {
-  data?: any,
-  error?: {
-    code: string,
-    message: string,
-    err?: any,
-    expiredData?: any,
-  }
+  valid: boolean;
+  data: any | null;
+  result: EDecryptionResult;
+}
+
+export enum EDecryptionResult {
+  SUCCESS = "SUCCESS",
+  INVALID_KEY = "INVALID_KEY",
+  EXPIRED = "EXPIRED",
 }
 
 export function encrypt(obj: any, key: string = '0'): string {
@@ -22,52 +24,50 @@ export function encrypt(obj: any, key: string = '0'): string {
 export function decrypt(cipherText: string, key: string = '0'): any {
   try {
     return JSON.parse(Crypto.AES.decrypt(cipherText, key).toString(Crypto.enc.Utf8));
-  } catch (err) {
+  }
+  catch (err) {
     return undefined;
   }
 }
 
-export function encryptEx(data: any, key: string, expireInMinutes?: number): string {
-  let lockPacket: ILockPacket = {
-    d: data,
-    e: expireInMinutes === undefined ? null : Number(new Date()) + (expireInMinutes * 1000 * 60)
+export function encryptWithExpire(data: any, key: string, expireInMinutes: number): string {
+  const lockPacket: ILockPacket = {
+    data: data,
+    expiresAt: Number(new Date()) + (expireInMinutes * 1000 * 60),
   };
   return encrypt(lockPacket, key);
 }
 
-export function decryptEx(cipher: string, key: string): any {
-  let result: IDecryptResult = decryptExInfo(cipher, key);
-  return !result.error && result.data;
+export function decryptWithExpire(cipher: string, key: string): any | null {
+  const result: IDecryptResult = decryptWithExpireDetails(cipher, key);
+  return result.data;
 }
 
-export function decryptExInfo(cipher: string, key: string): IDecryptResult {
-  let lockPacket: ILockPacket;
-
-  lockPacket = decrypt(cipher, key) as ILockPacket;
-  if (!lockPacket){
+export function decryptWithExpireDetails(cipher: string, key: string): IDecryptResult {
+  const lockPacket = decrypt(cipher, key) as ILockPacket;
+  if (!lockPacket) {
     return {
-      error: {
-        code: '#900',
-        message: 'Wrong key',
-      }
-    }
+      valid: false,
+      data: null,
+      result: EDecryptionResult.INVALID_KEY,
+    };
   }
 
-  if (lockPacket.e !== null) {
-    let expireDate: Date = new Date(lockPacket.e);
+  if (lockPacket.expiresAt !== null) {
+    const expireDate: Date = new Date(lockPacket.expiresAt);
     if (expireDate < new Date()) {
       return {
-        error: {
-          code: '#905',
-          message: 'Is expired',
-          expiredData: lockPacket.d,
-        }
-      }
+        valid: false,
+        data: null,
+        result: EDecryptionResult.EXPIRED,
+      };
     }
   }
 
   return {
-    data: lockPacket.d,
-  }
+    valid: true,
+    data: lockPacket.data,
+    result: EDecryptionResult.SUCCESS,
+  };
 
 }

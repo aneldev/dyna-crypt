@@ -17,8 +17,30 @@ export enum EDecryptionResult {
   EXPIRED = "EXPIRED",
 }
 
-export function encrypt(obj: any, key: string = '0'): string {
-  return Crypto.AES.encrypt(JSON.stringify(obj), key).toString();
+export interface IEncryptOptions {
+  random?: boolean;
+}
+
+export function encrypt(
+  obj: any,
+  key: string = '0',
+  {random = true}: IEncryptOptions = {},
+): string {
+  const data = JSON.stringify(obj);
+
+  // Random (Default) - Uses a random salt and IV automatically
+  if (random) return Crypto.AES.encrypt(data, key).toString();
+
+  // Convert string key to a 16-byte WordArray (AES-128)
+  const keyParsed = Crypto.enc.Utf8.parse(key.padEnd(16, '0').slice(0, 16));
+  // Define a fixed IV (e.g., all zeros) to ensure the same output every time
+  const iv = Crypto.enc.Utf8.parse('0000000000000000');
+
+  return Crypto.AES.encrypt(data, keyParsed, {
+    iv: iv,
+    mode: Crypto.mode.CBC,
+    padding: Crypto.pad.Pkcs7,
+  }).toString();
 }
 
 export function decrypt(cipherText: string, key: string = '0'): any {
@@ -30,12 +52,12 @@ export function decrypt(cipherText: string, key: string = '0'): any {
   }
 }
 
-export function encryptWithExpire(data: any, key: string, expireInMinutes: number): string {
+export function encryptWithExpire(data: any, key: string, expireInMinutes: number, encryptOptions?: IEncryptOptions): string {
   const lockPacket: ILockPacket = {
     data: data,
     expiresAt: Number(new Date()) + (expireInMinutes * 1000 * 60),
   };
-  return encrypt(lockPacket, key);
+  return encrypt(lockPacket, key, encryptOptions);
 }
 
 export function decryptWithExpire(cipher: string, key: string): any | null {

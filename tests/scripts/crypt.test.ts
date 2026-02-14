@@ -2,7 +2,7 @@ declare let describe: any, expect: any, it: any;
 import {
   encrypt,
   decrypt,
-} from "./../../src";
+} from "../../src";
 
 const textSample: string = 'something... strange... 把百度设为主页关于百度';
 
@@ -37,5 +37,18 @@ describe('encrypt / decrypt with expiration', () => {
     expect(obj).toEqual(objectSample);
     expect(obj.textSample).toBe(objectSample.textSample);
     expect(obj.age).toBe(objectSample.age);
+  });
+
+  it('should encrypt nrandom', () => {
+    const c1 = encrypt(objectSample, '0');
+    const c2 = encrypt(objectSample, '0');
+
+    expect(c1).not.toBe(c2);
+  });
+  it('should encrypt non random', () => {
+    const c1 = encrypt(objectSample, '0', {random: false});
+    const c2 = encrypt(objectSample, '0', {random: false});
+
+    expect(c1).toBe(c2);
   });
 });

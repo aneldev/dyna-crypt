@@ -5,9 +5,22 @@ export var EDecryptionResult;
     EDecryptionResult["INVALID_KEY"] = "INVALID_KEY";
     EDecryptionResult["EXPIRED"] = "EXPIRED";
 })(EDecryptionResult || (EDecryptionResult = {}));
-export function encrypt(obj, key) {
+export function encrypt(obj, key, _a) {
     if (key === void 0) { key = '0'; }
-    return Crypto.AES.encrypt(JSON.stringify(obj), key).toString();
+    var _b = _a === void 0 ? {} : _a, _c = _b.random, random = _c === void 0 ? true : _c;
+    var data = JSON.stringify(obj);
+    // Random (Default) - Uses a random salt and IV automatically
+    if (random)
+        return Crypto.AES.encrypt(data, key).toString();
+    // Convert string key to a 16-byte WordArray (AES-128)
+    var keyParsed = Crypto.enc.Utf8.parse(key.padEnd(16, '0').slice(0, 16));
+    // Define a fixed IV (e.g., all zeros) to ensure the same output every time
+    var iv = Crypto.enc.Utf8.parse('0000000000000000');
+    return Crypto.AES.encrypt(data, keyParsed, {
+        iv: iv,
+        mode: Crypto.mode.CBC,
+        padding: Crypto.pad.Pkcs7,
+    }).toString();
 }
 export function decrypt(cipherText, key) {
     if (key === void 0) { key = '0'; }
@@ -18,12 +31,12 @@ export function decrypt(cipherText, key) {
         return undefined;
     }
 }
-export function encryptWithExpire(data, key, expireInMinutes) {
+export function encryptWithExpire(data, key, expireInMinutes, encryptOptions) {
     var lockPacket = {
         data: data,
         expiresAt: Number(new Date()) + (expireInMinutes * 1000 * 60),
     };
-    return encrypt(lockPacket, key);
+    return encrypt(lockPacket, key, encryptOptions);
 }
 export function decryptWithExpire(cipher, key) {
     var result = decryptWithExpireDetails(cipher, key);

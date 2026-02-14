@@ -43,16 +43,35 @@ export function encrypt(
   }).toString();
 }
 
-export function decrypt(cipherText: string, key: string = '0'): any {
+export function decrypt(cipherText: string, key: string = '0'): any | undefined {
+  // Try random decryption first (default)
   try {
-    return JSON.parse(Crypto.AES.decrypt(cipherText, key).toString(Crypto.enc.Utf8));
+    const decrypted = Crypto.AES.decrypt(cipherText, key).toString(Crypto.enc.Utf8);
+    if (decrypted) return JSON.parse(decrypted);
+  }
+  catch (err) {
+    // Fall through to try non-random decryption
+  }
+
+  // Try non-random decryption
+  try {
+    const keyParsed = Crypto.enc.Utf8.parse(key.padEnd(16, '0').slice(0, 16));
+    const iv = Crypto.enc.Utf8.parse('0000000000000000');
+
+    const decrypted = Crypto.AES.decrypt(cipherText, keyParsed, {
+      iv: iv,
+      mode: Crypto.mode.CBC,
+      padding: Crypto.pad.Pkcs7,
+    }).toString(Crypto.enc.Utf8);
+
+    return JSON.parse(decrypted);
   }
   catch (err) {
     return undefined;
   }
 }
 
-export function encryptWithExpire(data: any, key: string, expireInMinutes: number, encryptOptions?: IEncryptOptions): string {
+export function encryptWithExpire(data: any, key: string | undefined, expireInMinutes: number, encryptOptions?: IEncryptOptions): string {
   const lockPacket: ILockPacket = {
     data: data,
     expiresAt: Number(new Date()) + (expireInMinutes * 1000 * 60),

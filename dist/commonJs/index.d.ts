@@ -8,8 +8,11 @@ export declare enum EDecryptionResult {
     INVALID_KEY = "INVALID_KEY",
     EXPIRED = "EXPIRED"
 }
-export declare function encrypt(obj: any, key?: string): string;
+export interface IEncryptOptions {
+    random?: boolean;
+}
+export declare function encrypt(obj: any, key?: string, { random }?: IEncryptOptions): string;
 export declare function decrypt(cipherText: string, key?: string): any;
-export declare function encryptWithExpire(data: any, key: string, expireInMinutes: number): string;
+export declare function encryptWithExpire(data: any, key: string, expireInMinutes: number, encryptOptions?: IEncryptOptions): string;
 export declare function decryptWithExpire(cipher: string, key: string): any | null;
 export declare function decryptWithExpireDetails(cipher: string, key: string): IDecryptResult;

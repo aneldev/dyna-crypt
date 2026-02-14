@@ -24,8 +24,25 @@ export function encrypt(obj, key, _a) {
 }
 export function decrypt(cipherText, key) {
     if (key === void 0) { key = '0'; }
+    // Try random decryption first (default)
     try {
-        return JSON.parse(Crypto.AES.decrypt(cipherText, key).toString(Crypto.enc.Utf8));
+        var decrypted = Crypto.AES.decrypt(cipherText, key).toString(Crypto.enc.Utf8);
+        if (decrypted)
+            return JSON.parse(decrypted);
+    }
+    catch (err) {
+        // Fall through to try non-random decryption
+    }
+    // Try non-random decryption
+    try {
+        var keyParsed = Crypto.enc.Utf8.parse(key.padEnd(16, '0').slice(0, 16));
+        var iv = Crypto.enc.Utf8.parse('0000000000000000');
+        var decrypted = Crypto.AES.decrypt(cipherText, keyParsed, {
+            iv: iv,
+            mode: Crypto.mode.CBC,
+            padding: Crypto.pad.Pkcs7,
+        }).toString(Crypto.enc.Utf8);
+        return JSON.parse(decrypted);
     }
     catch (err) {
         return undefined;

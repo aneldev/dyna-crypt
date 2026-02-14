@@ -12,7 +12,7 @@ export interface IEncryptOptions {
     random?: boolean;
 }
 export declare function encrypt(obj: any, key?: string, { random }?: IEncryptOptions): string;
-export declare function decrypt(cipherText: string, key?: string): any;
-export declare function encryptWithExpire(data: any, key: string, expireInMinutes: number, encryptOptions?: IEncryptOptions): string;
+export declare function decrypt(cipherText: string, key?: string): any | undefined;
+export declare function encryptWithExpire(data: any, key: string | undefined, expireInMinutes: number, encryptOptions?: IEncryptOptions): string;
 export declare function decryptWithExpire(cipher: string, key: string): any | null;
 export declare function decryptWithExpireDetails(cipher: string, key: string): IDecryptResult;
